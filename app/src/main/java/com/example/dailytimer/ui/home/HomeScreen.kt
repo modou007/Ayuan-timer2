@@ -25,7 +25,6 @@ import com.example.dailytimer.data.entity.TimerEntity
 import com.example.dailytimer.viewmodel.TimerState
 import com.example.dailytimer.viewmodel.TimerStatus
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     timers: List<TimerState>,
@@ -64,41 +63,13 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 timers.forEachIndexed { index, timer ->
-                    val dismissState = rememberSwipeToDismissBoxState(
-                        confirmValueChange = { value ->
-                            if (value == SwipeToDismissBoxValue.EndToStart) {
-                                onDelete(timer)
-                            }
-                            false // Don't dismiss visually; deletion happens after dialog confirm
-                        }
+                    TimerCard(
+                        timer = timer,
+                        onStart = { onStart(timer.id) },
+                        onPause = { onPause(timer.id) },
+                        onStop = { onStop(timer.id) },
+                        onDelete = { onDelete(timer) }
                     )
-                    SwipeToDismissBox(
-                        state = dismissState,
-                        backgroundContent = {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(StartBtn, RoundedCornerShape(20.dp))
-                                    .padding(horizontal = 20.dp),
-                                contentAlignment = Alignment.CenterEnd
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "Delete",
-                                    tint = TextWhite,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                        },
-                        enableDismissFromStartToEnd = false
-                    ) {
-                        TimerCard(
-                            timer = timer,
-                            onStart = { onStart(timer.id) },
-                            onPause = { onPause(timer.id) },
-                            onStop = { onStop(timer.id) }
-                        )
-                    }
                     if (index < timers.size - 1) {
                         DottedDivider()
                     }
@@ -131,6 +102,7 @@ private fun TimerCard(
     onStart: () -> Unit,
     onPause: () -> Unit,
     onStop: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val isRunning = timer.status == TimerStatus.RUNNING
@@ -148,32 +120,46 @@ private fun TimerCard(
     ) {
         // Top row
         Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            EmojiAvatar(iconType = timer.iconType, iconColor = timer.iconColor)
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    text = timer.name,
-                    style = Typography.titleLarge.copy(fontSize = 18.sp),
-                    color = TextDark
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                EmojiAvatar(iconType = timer.iconType, iconColor = timer.iconColor)
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
-                        text = "今日累计",
-                        style = Typography.bodyLarge.copy(fontSize = 14.sp),
-                        color = TextGray
+                        text = timer.name,
+                        style = Typography.titleLarge.copy(fontSize = 18.sp),
+                        color = TextDark
                     )
-                    Text(
-                        text = timer.dailyTotal,
-                        style = Typography.labelMedium.copy(fontSize = 14.sp),
-                        color = TextGray
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = "今日累计",
+                            style = Typography.bodyLarge.copy(fontSize = 14.sp),
+                            color = TextGray
+                        )
+                        Text(
+                            text = timer.dailyTotal,
+                            style = Typography.labelMedium.copy(fontSize = 14.sp),
+                            color = TextGray
+                        )
+                    }
                 }
             }
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Delete",
+                tint = TextGray.copy(alpha = 0.5f),
+                modifier = Modifier
+                    .size(20.dp)
+                    .clickable { onDelete() }
+            )
         }
 
         // Session timer
