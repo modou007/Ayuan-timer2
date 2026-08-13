@@ -44,7 +44,7 @@ class StopwatchViewModel : ViewModel() {
     }
 
     fun lap() {
-        laps.add(0, "计次 ${laps.size + 1}" to timeText.value + msText.value)
+        laps.add(0, "计次 ${laps.size + 1}" to (timeText.value + msText.value))
     }
 
     fun clearLaps() {
