@@ -18,7 +18,7 @@ fun RingChart(
     segments: List<RingSegment>,
     modifier: Modifier = Modifier.size(200.dp)
 ) {
-    val total = segments.sumOf { it.percent }.coerceAtLeast(0.001f)
+    val total = segments.fold(0f) { acc, seg -> acc + seg.percent }.coerceAtLeast(0.001f)
     Canvas(modifier = modifier) {
         val diameter = min(size.width, size.height)
         val radius = diameter / 2f

@@ -25,6 +25,7 @@ import com.example.dailytimer.data.entity.TimerEntity
 import com.example.dailytimer.viewmodel.TimerState
 import com.example.dailytimer.viewmodel.TimerStatus
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     timers: List<TimerState>,
