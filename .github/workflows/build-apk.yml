@@ -19,8 +19,14 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Generate Gradle Wrapper
-        run: gradle wrapper --gradle-version 8.7
+      - name: Download Gradle and generate wrapper
+        run: |
+          wget -q https://services.gradle.org/distributions/gradle-8.7-bin.zip
+          unzip -q gradle-8.7-bin.zip
+          ./gradle-8.7/bin/gradle wrapper --gradle-version 8.7
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
 
       - name: Setup Gradle cache
         uses: gradle/actions/setup-gradle@v3
