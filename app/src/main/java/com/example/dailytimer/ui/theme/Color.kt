@@ -1,0 +1,33 @@
+package com.example.dailytimer.ui.theme
+
+import androidx.compose.ui.graphics.Color
+
+val BgPrimary = Color(0xFFFFFBF5)
+val Accent = Color(0xFFFFF3D6)
+val CardBg = Color(0xFFFFFFFF)
+val Divider = Color(0xFFE8E0D6)
+val PauseBtn = Color(0xFFFFD93D)
+val StartBtn = Color(0xFFFF6B6B)
+val StopBtn = Color(0xFF6BCC77)
+val TextDark = Color(0xFF333333)
+val TextGray = Color(0xFF999999)
+val TextWhite = Color(0xFFFFFFFF)
+
+val Red = Color(0xFFFF4757)
+val Yellow = Color(0xFFFFD93D)
+val Orange = Color(0xFFFF8C42)
+val Green = Color(0xFF6BCB77)
+val Blue = Color(0xFF4D96FF)
+val Purple = Color(0xFF9C27B0)
+val ProgressBg = Color(0xFFF0EBE0)
+val DisabledBg = Color(0xFFF0EBE0)
+val DisabledText = Color(0xFFBBA98D)
+val Placeholder = Color(0xFFBBAA9C)
+val InputBorder = Color(0xFFD4C8B8)
+val WarningBg = Color(0xFFFFE5E5)
+val WarningRed = Color(0xFFFF6B6B)
+val DetailBg = Color(0xFFFFF8F0)
+val CancelBtnBg = Color(0xFFF0EBC0)
+val OverlayDark = Color(0x80000000)
+val ToggleInactive = Color(0xFF666666)
+val ShadowBrown = Color(0x4D80661A)
