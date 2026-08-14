@@ -46,7 +46,16 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Build debug APK
-        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+        run: |
+          ./gradlew :app:assembleDebug --no-daemon --stacktrace --info 2>&1 | tee build-output.txt
+          echo "BUILD_EXIT_CODE=$?"
+
+      - name: Upload build log (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output-log
+          path: build-output.txt
 
       - name: Upload APK
         if: success()
@@ -54,3 +63,17 @@ jobs:
         with:
           name: app-debug
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Print error summary
+        if: failure()
+        run: |
+          echo "========== BUILD FAILED - ERROR SUMMARY =========="
+          if [ -f build-output.txt ]; then
+            grep -E "error:|Error:|FAILURE|e:" build-output.txt | head -50 || echo "No error patterns found in log"
+            echo ""
+            echo "========== LAST 100 LINES OF BUILD LOG =========="
+            tail -100 build-output.txt
+          else
+            echo "build-output.txt not found"
+          fi
+          echo "==================================================="
