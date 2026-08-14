@@ -40,8 +40,15 @@ jobs:
 
       - name: Build debug APK
         run: |
-          ./gradlew :app:assembleDebug --no-daemon --stacktrace --info 2>&1 | tee build-output.txt
-          echo "BUILD_EXIT_CODE=$?"
+          ./gradlew :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee build-output.txt
+          echo "BUILD_EXIT_CODE=${PIPESTATUS[0]}"
+
+      - name: Verify APK exists
+        run: |
+          echo "=== APK files found ==="
+          find app/build/outputs -name "*.apk" -exec ls -la {} \; 2>/dev/null || echo "No APK found"
+          echo "=== APK directory listing ==="
+          ls -la app/build/outputs/apk/debug/ 2>/dev/null || echo "debug dir not found"
 
       - name: Upload build log (always)
         if: always()
@@ -55,7 +62,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
 
       - name: Print error summary
         if: failure()
