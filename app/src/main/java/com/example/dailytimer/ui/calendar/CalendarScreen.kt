@@ -42,9 +42,9 @@ fun CalendarScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TogglePill("周", selectedTab == 0) { selectedTab = 0 }
-            TogglePill("月", selectedTab == 1) { selectedTab = 1 }
-            TogglePill("自定义", selectedTab == 2) { selectedTab = 2 }
+            TogglePill("周", selectedTab == 0, { selectedTab = 0 }, Modifier.weight(1f))
+            TogglePill("月", selectedTab == 1, { selectedTab = 1 }, Modifier.weight(1f))
+            TogglePill("自定义", selectedTab == 2, { selectedTab = 2 }, Modifier.weight(1f))
         }
 
         // Chart Card
@@ -126,10 +126,14 @@ fun CalendarScreen(
 }
 
 @Composable
-private fun TogglePill(text: String, selected: Boolean, onClick: () -> Unit) {
+private fun TogglePill(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Box(
-        modifier = Modifier
-            .weight(1f)
+        modifier = modifier
             .height(40.dp)
             .shadow(4.dp, RoundedCornerShape(20.dp), spotColor = Color.Black.copy(alpha = 0.04f))
             .background(if (selected) Accent else CardBg, RoundedCornerShape(20.dp))

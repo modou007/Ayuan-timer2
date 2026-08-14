@@ -2,6 +2,7 @@ package com.example.dailytimer.data.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
@@ -13,7 +14,8 @@ import androidx.room.PrimaryKey
             childColumns = ["timerId"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index(value = ["timerId"])]
 )
 data class DailySummaryEntity(
     @PrimaryKey(autoGenerate = true)
