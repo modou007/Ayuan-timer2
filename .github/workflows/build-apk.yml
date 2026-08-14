@@ -45,11 +45,23 @@ jobs:
           export ANDROID_HOME=${ANDROID_HOME:-/usr/local/lib/android/sdk}
           gradle :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee build-output.txt
           BUILD_RC=${PIPESTATUS[0]}
+          echo ""
+          echo "============================================"
+          echo "  BUILD RESULT: RC=$BUILD_RC"
+          echo "============================================"
           if [ "$BUILD_RC" -ne 0 ]; then
-            echo "===== BUILD FAILED (rc=$BUILD_RC) ====="
-            grep -E "e:|error:|FAILED|> Task :app.*FAILED|What went wrong|Could not" build-output.txt | head -40 || true
-            echo "===== LAST 120 LINES OF BUILD LOG ====="
-            tail -120 build-output.txt
+            echo ""
+            echo ">>> KOTLIN COMPILATION ERRORS (e: lines) <<<"
+            grep -E "^e:" build-output.txt || echo "(no e: lines found)"
+            echo ""
+            echo ">>> ALL ERROR LINES <<<"
+            grep -iE "error:|Error |FAILED|What went wrong|Could not resolve|Unresolved reference" build-output.txt | head -30 || true
+            echo ""
+            echo ">>> FIRST 100 LINES (errors are near the top) <<<"
+            head -100 build-output.txt
+            echo ""
+            echo ">>> LAST 80 LINES <<<"
+            tail -80 build-output.txt
             exit 1
           fi
           echo "===== BUILD PASSED ====="
@@ -58,10 +70,6 @@ jobs:
           APK=$(find app/build -name "*.apk" | head -1)
           if [ -z "$APK" ]; then
             echo "===== APK NOT FOUND ====="
-            echo "app/build tree (dirs):"
-            find app/build -type d | head -50
-            echo "app/build/outputs files:"
-            find app/build/outputs -type f 2>/dev/null | head -50 || echo "outputs missing"
             exit 1
           fi
           mkdir -p apk-out
@@ -76,9 +84,9 @@ jobs:
           path: build-output.txt
 
       - name: Upload APK
-        if: always()
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
           path: apk-out/app-debug.apk
-          if-no-files-found: error
+          if-no-files-found: warn
