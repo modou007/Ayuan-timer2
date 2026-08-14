@@ -1,7 +1,7 @@
 name: Build Debug APK
 
 on:
-  workflow_dispatch:   # 手动触发：Actions 页面点 "Run workflow"
+  workflow_dispatch:  # 手动触发：Actions 页面点 "Run workflow"
   push:
     branches: [main]
 
@@ -19,19 +19,12 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Download Gradle and generate wrapper
-        run: |
-          wget -q https://services.gradle.org/distributions/gradle-8.7-bin.zip
-          unzip -q gradle-8.7-bin.zip
-          ./gradle-8.7/bin/gradle wrapper --gradle-version 8.7
-
       - name: Make gradlew executable
         run: chmod +x gradlew
 
       - name: Setup Android SDK
         run: |
           echo "ANDROID_HOME=$ANDROID_HOME"
-          ls "$ANDROID_HOME" 2>/dev/null | head -20
           # Accept licenses and ensure platform 34 + build-tools are present
           if [ -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
             yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
