@@ -19,13 +19,18 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Make gradlew executable
-        run: chmod +x gradlew
+      - name: Install Gradle 8.7 (bypass wrapper download)
+        run: |
+          curl -fsSL -o "$HOME/gradle-8.7-bin.zip" https://services.gradle.org/distributions/gradle-8.7-bin.zip
+          mkdir -p "$HOME/gradle"
+          unzip -q "$HOME/gradle-8.7-bin.zip" -d "$HOME/gradle"
+          echo "$HOME/gradle/gradle-8.7/bin" >> "$GITHUB_PATH"
+          gradle --version
 
       - name: Setup Android SDK
         run: |
+          export ANDROID_HOME=${ANDROID_HOME:-/usr/local/lib/android/sdk}
           echo "ANDROID_HOME=$ANDROID_HOME"
-          # Accept licenses and ensure platform 34 + build-tools are present
           if [ -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
             yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
             "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" "build-tools;34.0.0" > /dev/null 2>&1 || true
@@ -35,32 +40,35 @@ jobs:
           fi
           echo "SDK setup done"
 
-      - name: Setup Gradle cache
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: Build debug APK
+      - name: Build debug APK and locate
         run: |
-          ./gradlew :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee build-output.txt
-          echo "BUILD_EXIT_CODE=${PIPESTATUS[0]}"
-
-      - name: Locate and prepare APK
-        run: |
-          echo "=== Searching for APK files ==="
-          find app/build/outputs -name "*.apk" 2>/dev/null | tee apk-list.txt || true
-          APK=$(find app/build/outputs -name "*.apk" | head -1)
-          if [ -z "$APK" ]; then
-            echo "ERROR: No APK found in app/build/outputs!"
-            echo "=== Full outputs tree ==="
-            find app/build/outputs -type f 2>/dev/null | head -30 || echo "outputs dir empty/missing"
+          export ANDROID_HOME=${ANDROID_HOME:-/usr/local/lib/android/sdk}
+          gradle :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee build-output.txt
+          BUILD_RC=${PIPESTATUS[0]}
+          if [ "$BUILD_RC" -ne 0 ]; then
+            echo "===== BUILD FAILED (rc=$BUILD_RC) ====="
+            grep -E "e:|error:|FAILED|> Task :app.*FAILED|What went wrong|Could not" build-output.txt | head -40 || true
+            echo "===== LAST 120 LINES OF BUILD LOG ====="
+            tail -120 build-output.txt
             exit 1
           fi
-          echo "Found APK: $APK"
+          echo "===== BUILD PASSED ====="
+          echo "===== Searching for APK under app/build ====="
+          find app/build -name "*.apk" -print
+          APK=$(find app/build -name "*.apk" | head -1)
+          if [ -z "$APK" ]; then
+            echo "===== APK NOT FOUND ====="
+            echo "app/build tree (dirs):"
+            find app/build -type d | head -50
+            echo "app/build/outputs files:"
+            find app/build/outputs -type f 2>/dev/null | head -50 || echo "outputs missing"
+            exit 1
+          fi
           mkdir -p apk-out
           cp "$APK" apk-out/app-debug.apk
-          ls -la apk-out/
-          echo "APK_SIZE=$(stat -c%s apk-out/app-debug.apk) bytes"
+          echo "===== APK READY: apk-out/app-debug.apk ($(stat -c%s apk-out/app-debug.apk) bytes) ====="
 
-      - name: Upload build log (always)
+      - name: Upload build log
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -68,23 +76,9 @@ jobs:
           path: build-output.txt
 
       - name: Upload APK
-        if: success()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
           path: apk-out/app-debug.apk
           if-no-files-found: error
-
-      - name: Print error summary
-        if: failure()
-        run: |
-          echo "========== BUILD FAILED - ERROR SUMMARY =========="
-          if [ -f build-output.txt ]; then
-            grep -E "error:|Error:|FAILURE|e:" build-output.txt | head -50 || echo "No error patterns found in log"
-            echo ""
-            echo "========== LAST 100 LINES OF BUILD LOG =========="
-            tail -100 build-output.txt
-          else
-            echo "build-output.txt not found"
-          fi
-          echo "==================================================="
